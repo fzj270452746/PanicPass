@@ -1,0 +1,6 @@
+framework module Pods_PanicPass {
+  umbrella header "Pods-PanicPass-umbrella.h"
+
+  export *
+  module * { export * }
+}
