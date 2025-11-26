@@ -1,5 +1,5 @@
 //
-//  GameplayOrchestrator.swift
+//  PuzzleGameEngine.swift
 //  PanicPass
 //
 //  Created by Zhao on 2025/11/25.
@@ -7,47 +7,46 @@
 
 import UIKit
 
-class GameplayOrchestrator: UIViewController {
+class PuzzleGameEngine: UIViewController {
     
-    var backgroundIllustration: UIImageView!
-    var dimmerOverlay: UIView!
-    var retreatButton: UIButton!
-    var accomplishmentLabel: UILabel!
-    var chronometer: UILabel!
-    var modeIndicator: UILabel!
+    var backdropCanvas: UIImageView!
+    var maskOverlay: UIView!
+    var quitControl: UIButton!
+    var scoreDisplay: UILabel!
+    var clockDisplay: UILabel!
+    var styleBadge: UILabel!
     
-    var upperSlotContainer: UIView!
-    var lowerTileContainer: CustomScrollView!
-    var tilePalette: UIView!
+    var targetZone: UIView!
+    var pieceContainer: EnhancedScrollView!
+    var pieceGrid: UIView!
     
-    var slotQueue: [SlotVessel] = []
-    var availableTiles: [TileEntity] = []
-    var currentAccomplishment: Int = 0
-    var elapsedDuration: TimeInterval = 0
-    var gameTimer: Timer?
-    var slotTimer: Timer?
-    var slotVelocity: CGFloat = 1.5
-    var activeSlotIndex: Int = 0
-    var gameMode: GameplayMode = .classic
-    var hasRecordSaved: Bool = false
+    var targetList: [TargetSlot] = []
+    var activePieces: [GamePiece] = []
+    var currentScore: Int = 0
+    var sessionTime: TimeInterval = 0
+    var clockTimer: Timer?
+    var targetTimer: Timer?
+    var movementRate: CGFloat = 1.5
+    var focusedIndex: Int = 0
+    var selectedStyle: PlayStyle = .relaxed
+    var recordSaved: Bool = false
     
-    var hasInitiatedGameplay = false
+    var sessionStarted = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        configureInterface()
-        orchestrateLayout()
+        assembleInterface()
+        establishLayout()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        // Only initiate gameplay once, after the view is fully visible
-        if !hasInitiatedGameplay {
-            hasInitiatedGameplay = true
-            // Small delay to ensure all animations are ready
+        // Start game session only once
+        if !sessionStarted {
+            sessionStarted = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                self.initiateGameplay()
+                self.beginSession()
             }
         }
     }
@@ -58,138 +57,132 @@ class GameplayOrchestrator: UIViewController {
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        terminateTimers()
+        haltTimers()
         
-        // 自动保存游戏记录（如果还没保存的话）
-        if currentAccomplishment > 0 && !hasRecordSaved {
-            saveGameRecord()
+        // Auto-save record
+        if currentScore > 0 && !recordSaved {
+            captureRecord()
         }
     }
 }
 
-// MARK: - Slot Vessel Model
-class SlotVessel: UIView {
-    var requiredMagnitude: Int
-    var magnitudeLabel: UILabel!
-    var tileIllustration: UIImageView?
-    var isFulfilled: Bool = false
+// MARK: - Target Slot Model
+class TargetSlot: UIView {
+    var neededValue: Int
+    var valueDisplay: UILabel!
+    var pieceImage: UIImageView?
+    var isMatched: Bool = false
     
-    init(magnitude: Int) {
-        self.requiredMagnitude = magnitude
+    init(value: Int) {
+        self.neededValue = value
         super.init(frame: .zero)
-        configureVessel()
+        setupAppearance()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func configureVessel() {
-        backgroundColor = UIColor.white.withAlphaComponent(0.25)
+    func setupAppearance() {
+        backgroundColor = UIColor.white.withAlphaComponent(0.2)
         layer.cornerRadius = 10
         layer.borderWidth = 2.5
-        layer.borderColor = UIColor.white.withAlphaComponent(0.8).cgColor
+        layer.borderColor = UIColor.white.withAlphaComponent(0.75).cgColor
         layer.shadowColor = UIColor.black.cgColor
         layer.shadowOffset = CGSize(width: 0, height: 3)
         layer.shadowRadius = 5
         layer.shadowOpacity = 0.4
         
-        magnitudeLabel = UILabel()
-        magnitudeLabel.text = "\(requiredMagnitude)"
-        magnitudeLabel.font = UIFont.systemFont(ofSize: 32, weight: .heavy)
-        magnitudeLabel.textColor = .white
-        magnitudeLabel.textAlignment = .center
-        magnitudeLabel.layer.shadowColor = UIColor.black.cgColor
-        magnitudeLabel.layer.shadowOffset = CGSize(width: 0, height: 2)
-        magnitudeLabel.layer.shadowRadius = 3
-        magnitudeLabel.layer.shadowOpacity = 0.5
-        magnitudeLabel.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(magnitudeLabel)
+        valueDisplay = UILabel()
+        valueDisplay.text = "\(neededValue)"
+        valueDisplay.font = UIFont.systemFont(ofSize: 32, weight: .heavy)
+        valueDisplay.textColor = UIColor(red: 1.0, green: 0.92, blue: 0.2, alpha: 1.0)  // Bright yellow
+        valueDisplay.textAlignment = .center
+        valueDisplay.layer.shadowColor = UIColor.black.cgColor
+        valueDisplay.layer.shadowOffset = CGSize(width: 0, height: 2)
+        valueDisplay.layer.shadowRadius = 3
+        valueDisplay.layer.shadowOpacity = 0.5
+        valueDisplay.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(valueDisplay)
         
         NSLayoutConstraint.activate([
-            magnitudeLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
-            magnitudeLabel.centerYAnchor.constraint(equalTo: centerYAnchor)
+            valueDisplay.centerXAnchor.constraint(equalTo: centerXAnchor),
+            valueDisplay.centerYAnchor.constraint(equalTo: centerYAnchor)
         ])
     }
     
-    func illuminateHighlight() {
+    func activateFocus() {
         UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5, options: [.curveEaseOut, .allowUserInteraction]) {
-            self.layer.borderColor = UIColor(red: 1.0, green: 0.84, blue: 0.0, alpha: 1.0).cgColor
+            self.layer.borderColor = StyleConfig.Palette.accent.cgColor
             self.layer.borderWidth = 4
-            self.backgroundColor = UIColor(red: 1.0, green: 0.84, blue: 0.0, alpha: 0.4)
+            self.backgroundColor = StyleConfig.Palette.accent.withAlphaComponent(0.35)
             self.transform = CGAffineTransform(scaleX: 1.08, y: 1.08)
         }
     }
     
-    func extinguishHighlight() {
+    func deactivateFocus() {
         UIView.animate(withDuration: 0.3, delay: 0, options: [.curveEaseOut, .allowUserInteraction]) {
-            self.layer.borderColor = UIColor.white.withAlphaComponent(0.8).cgColor
+            self.layer.borderColor = UIColor.white.withAlphaComponent(0.75).cgColor
             self.layer.borderWidth = 2.5
-            self.backgroundColor = UIColor.white.withAlphaComponent(0.25)
+            self.backgroundColor = UIColor.white.withAlphaComponent(0.2)
             self.transform = .identity
         }
     }
     
-    func manifestError() {
-        let originalTransform = self.transform
+    func showMismatch() {
+        let savedTransform = self.transform
         
         UIView.animate(withDuration: 0.15, animations: {
-            self.layer.borderColor = UIColor(red: 1.0, green: 0.2, blue: 0.2, alpha: 1.0).cgColor
-            self.backgroundColor = UIColor(red: 1.0, green: 0.2, blue: 0.2, alpha: 0.6)
+            self.layer.borderColor = StyleConfig.Palette.negative.cgColor
+            self.backgroundColor = StyleConfig.Palette.negative.withAlphaComponent(0.5)
             self.transform = CGAffineTransform(scaleX: 1.15, y: 1.15)
         }) { _ in
             UIView.animate(withDuration: 0.15, animations: {
                 self.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
             }) { _ in
                 UIView.animate(withDuration: 0.2) {
-                    if !self.isFulfilled {
-                        self.layer.borderColor = UIColor(red: 1.0, green: 0.84, blue: 0.0, alpha: 1.0).cgColor
-                        self.backgroundColor = UIColor(red: 1.0, green: 0.84, blue: 0.0, alpha: 0.4)
-                        self.transform = originalTransform
+                    if !self.isMatched {
+                        self.layer.borderColor = StyleConfig.Palette.accent.cgColor
+                        self.backgroundColor = StyleConfig.Palette.accent.withAlphaComponent(0.35)
+                        self.transform = savedTransform
                     }
                 }
             }
         }
     }
     
-    func fulfillWithTile(_ tile: TileEntity, completion: @escaping () -> Void) {
-        isFulfilled = true
+    func completeWith(_ piece: GamePiece, finished: @escaping () -> Void) {
+        isMatched = true
         
-        // Create image view for the tile
-        let imageView = UIImageView(image: tile.illustration)
-        imageView.contentMode = .scaleAspectFill
-        imageView.layer.cornerRadius = 6
-        imageView.clipsToBounds = true
-        imageView.backgroundColor = UIColor.white.withAlphaComponent(0.1)
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(imageView)
+        let display = UIImageView(image: piece.visual)
+        display.contentMode = .scaleAspectFill
+        display.layer.cornerRadius = 6
+        display.clipsToBounds = true
+        display.backgroundColor = UIColor.white.withAlphaComponent(0.1)
+        display.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(display)
         
         NSLayoutConstraint.activate([
-            imageView.topAnchor.constraint(equalTo: topAnchor, constant: 5),
-            imageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 5),
-            imageView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -5),
-            imageView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -5)
+            display.topAnchor.constraint(equalTo: topAnchor, constant: 5),
+            display.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 5),
+            display.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -5),
+            display.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -5)
         ])
         
-        // Force layout
         layoutIfNeeded()
+        self.pieceImage = display
+        valueDisplay.alpha = 0.5
+        bringSubviewToFront(valueDisplay)
         
-        self.tileIllustration = imageView
-        
-        // Make number label semi-transparent but keep it visible
-        magnitudeLabel.alpha = 0.5
-        bringSubviewToFront(magnitudeLabel)
-        
-        // Success animation
         UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 0.6, initialSpringVelocity: 0.5, options: .curveEaseOut, animations: {
-            self.layer.borderColor = UIColor(red: 0.2, green: 0.8, blue: 0.3, alpha: 1.0).cgColor
-            self.backgroundColor = UIColor(red: 0.2, green: 0.8, blue: 0.3, alpha: 0.35)
+            self.layer.borderColor = StyleConfig.Palette.positive.cgColor
+            self.backgroundColor = StyleConfig.Palette.positive.withAlphaComponent(0.3)
             self.transform = CGAffineTransform(scaleX: 1.12, y: 1.12)
         }) { _ in
             UIView.animate(withDuration: 0.25) {
                 self.transform = .identity
             } completion: { _ in
-                completion()
+                finished()
             }
         }
     }

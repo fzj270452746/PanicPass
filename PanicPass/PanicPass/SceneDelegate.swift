@@ -1,5 +1,6 @@
-import AppTrackingTransparency
+
 import UIKit
+import AppTrackingTransparency
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
@@ -10,8 +11,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         
         window = UIWindow(windowScene: windowScene)
-        let initialController = InKeyoaiPortalController()
-        window?.rootViewController = initialController
+        let mainHub = MainMenuHub()
+        window?.rootViewController = mainHub
         window?.makeKeyAndVisible()
     }
 

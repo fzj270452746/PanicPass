@@ -1,5 +1,5 @@
 //
-//  GameplayOrchestrator+Interface.swift
+//  PuzzleGameEngine+Interface.swift
 //  PanicPass
 //
 //  Created by Zhao on 2025/11/25.
@@ -7,221 +7,219 @@
 
 import UIKit
 
-extension GameplayOrchestrator {
+extension PuzzleGameEngine {
     
-    func configureInterface() {
-        // Background
-        backgroundIllustration = UIImageView()
-        backgroundIllustration.image = UIImage(named: "passPhoto")
-        backgroundIllustration.contentMode = .scaleAspectFill
-        backgroundIllustration.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(backgroundIllustration)
+    func assembleInterface() {
+        // Background layer
+        backdropCanvas = UIImageView()
+        backdropCanvas.image = UIImage(named: "passPhoto")
+        backdropCanvas.contentMode = .scaleAspectFill
+        backdropCanvas.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(backdropCanvas)
         
-        // Dimmer with gradient
-        dimmerOverlay = UIView()
-        dimmerOverlay.backgroundColor = UIColor.black.withAlphaComponent(0.55)
-        dimmerOverlay.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(dimmerOverlay)
+        // Mask layer
+        maskOverlay = UIView()
+        maskOverlay.backgroundColor = UIColor.black.withAlphaComponent(0.5)
+        maskOverlay.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(maskOverlay)
         
-        // Add gradient overlay
+        // Add gradient
         DispatchQueue.main.async {
-            let gradientLayer = CAGradientLayer()
-            gradientLayer.frame = self.view.bounds
-            gradientLayer.colors = [
-                UIColor.black.withAlphaComponent(0.4).cgColor,
-                UIColor.black.withAlphaComponent(0.65).cgColor
+            let gradient = CAGradientLayer()
+            gradient.frame = self.view.bounds
+            gradient.colors = [
+                UIColor.black.withAlphaComponent(0.35).cgColor,
+                UIColor.black.withAlphaComponent(0.6).cgColor
             ]
-            gradientLayer.locations = [0.0, 1.0]
-            self.dimmerOverlay.layer.addSublayer(gradientLayer)
+            gradient.locations = [0.0, 1.0]
+            self.maskOverlay.layer.addSublayer(gradient)
         }
         
-        // Retreat button
-        retreatButton = fabricateRetreatButton()
-        retreatButton.addTarget(self, action: #selector(executeRetreat), for: .touchUpInside)
-        view.addSubview(retreatButton)
+        // Quit button
+        quitControl = buildQuitControl()
+        quitControl.addTarget(self, action: #selector(handleQuit), for: .touchUpInside)
+        view.addSubview(quitControl)
         
-        // Accomplishment label
-        accomplishmentLabel = UILabel()
-        accomplishmentLabel.text = "SCORE: 0"
-        accomplishmentLabel.font = UIFont.systemFont(ofSize: 20, weight: .bold)
-        accomplishmentLabel.textColor = UIColor(red: 1.0, green: 0.84, blue: 0.0, alpha: 1.0)
-        accomplishmentLabel.textAlignment = .right
-        accomplishmentLabel.layer.shadowColor = UIColor.black.cgColor
-        accomplishmentLabel.layer.shadowOffset = CGSize(width: 0, height: 2)
-        accomplishmentLabel.layer.shadowRadius = 4
-        accomplishmentLabel.layer.shadowOpacity = 0.6
-        accomplishmentLabel.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(accomplishmentLabel)
+        // Score display
+        scoreDisplay = UILabel()
+        scoreDisplay.text = "SCORE: 0"
+        scoreDisplay.font = UIFont.systemFont(ofSize: 20, weight: .bold)
+        scoreDisplay.textColor = StyleConfig.Palette.accent
+        scoreDisplay.textAlignment = .right
+        scoreDisplay.layer.shadowColor = UIColor.black.cgColor
+        scoreDisplay.layer.shadowOffset = CGSize(width: 0, height: 2)
+        scoreDisplay.layer.shadowRadius = 4
+        scoreDisplay.layer.shadowOpacity = 0.6
+        scoreDisplay.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(scoreDisplay)
         
-        // Chronometer
-        chronometer = UILabel()
-        chronometer.text = "TIME: 00:00"
-        chronometer.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
-        chronometer.textColor = UIColor.white.withAlphaComponent(0.9)
-        chronometer.textAlignment = .right
-        chronometer.layer.shadowColor = UIColor.black.cgColor
-        chronometer.layer.shadowOffset = CGSize(width: 0, height: 1)
-        chronometer.layer.shadowRadius = 3
-        chronometer.layer.shadowOpacity = 0.5
-        chronometer.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(chronometer)
+        // Clock display
+        clockDisplay = UILabel()
+        clockDisplay.text = "TIME: 00:00"
+        clockDisplay.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
+        clockDisplay.textColor = UIColor.white.withAlphaComponent(0.9)
+        clockDisplay.textAlignment = .right
+        clockDisplay.layer.shadowColor = UIColor.black.cgColor
+        clockDisplay.layer.shadowOffset = CGSize(width: 0, height: 1)
+        clockDisplay.layer.shadowRadius = 3
+        clockDisplay.layer.shadowOpacity = 0.5
+        clockDisplay.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(clockDisplay)
         
-        // Mode indicator
-        modeIndicator = UILabel()
-        modeIndicator.text = "CLASSIC"
-        modeIndicator.font = UIFont.systemFont(ofSize: 14, weight: .bold)
-        modeIndicator.textColor = UIColor(red: 1.0, green: 0.84, blue: 0.0, alpha: 1.0)
-        modeIndicator.textAlignment = .center
-        modeIndicator.layer.shadowColor = UIColor.black.cgColor
-        modeIndicator.layer.shadowOffset = CGSize(width: 0, height: 1)
-        modeIndicator.layer.shadowRadius = 3
-        modeIndicator.layer.shadowOpacity = 0.5
-        modeIndicator.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(modeIndicator)
+        // Mode badge
+        styleBadge = UILabel()
+        styleBadge.text = "RELAXED MODE"
+        styleBadge.font = UIFont.systemFont(ofSize: 14, weight: .bold)
+        styleBadge.textColor = StyleConfig.Palette.accent
+        styleBadge.textAlignment = .center
+        styleBadge.layer.shadowColor = UIColor.black.cgColor
+        styleBadge.layer.shadowOffset = CGSize(width: 0, height: 1)
+        styleBadge.layer.shadowRadius = 3
+        styleBadge.layer.shadowOpacity = 0.5
+        styleBadge.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(styleBadge)
         
-        // Upper slot container
-        upperSlotContainer = UIView()
-        upperSlotContainer.backgroundColor = .clear
-        upperSlotContainer.clipsToBounds = true
-        upperSlotContainer.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(upperSlotContainer)
+        // Target zone
+        targetZone = UIView()
+        targetZone.backgroundColor = .clear
+        targetZone.clipsToBounds = true
+        targetZone.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(targetZone)
         
-        // Lower tile container - 使用自定义ScrollView
-        lowerTileContainer = CustomScrollView()
-        lowerTileContainer.backgroundColor = UIColor.black.withAlphaComponent(0.5)
-        lowerTileContainer.layer.cornerRadius = 18
-        lowerTileContainer.layer.borderWidth = 2
-        lowerTileContainer.layer.borderColor = UIColor.white.withAlphaComponent(0.2).cgColor
-        lowerTileContainer.showsHorizontalScrollIndicator = false
-        lowerTileContainer.showsVerticalScrollIndicator = true
-        lowerTileContainer.indicatorStyle = .white
-        lowerTileContainer.isScrollEnabled = true
-        lowerTileContainer.isUserInteractionEnabled = true
-        lowerTileContainer.bounces = true
-        lowerTileContainer.alwaysBounceVertical = true
-        lowerTileContainer.clipsToBounds = true
-        lowerTileContainer.layer.shadowColor = UIColor.black.cgColor
-        lowerTileContainer.layer.shadowOffset = CGSize(width: 0, height: 4)
-        lowerTileContainer.layer.shadowRadius = 8
-        lowerTileContainer.layer.shadowOpacity = 0.5
-        lowerTileContainer.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(lowerTileContainer)
+        // Piece container
+        pieceContainer = EnhancedScrollView()
+        pieceContainer.backgroundColor = UIColor.black.withAlphaComponent(0.45)
+        pieceContainer.layer.cornerRadius = 16
+        pieceContainer.layer.borderWidth = 2
+        pieceContainer.layer.borderColor = UIColor.white.withAlphaComponent(0.2).cgColor
+        pieceContainer.showsHorizontalScrollIndicator = false
+        pieceContainer.showsVerticalScrollIndicator = true
+        pieceContainer.indicatorStyle = .white
+        pieceContainer.isScrollEnabled = true
+        pieceContainer.isUserInteractionEnabled = true
+        pieceContainer.bounces = true
+        pieceContainer.alwaysBounceVertical = true
+        pieceContainer.clipsToBounds = true
+        pieceContainer.layer.shadowColor = UIColor.black.cgColor
+        pieceContainer.layer.shadowOffset = CGSize(width: 0, height: 4)
+        pieceContainer.layer.shadowRadius = 8
+        pieceContainer.layer.shadowOpacity = 0.5
+        pieceContainer.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(pieceContainer)
         
-        // Tile palette - 使用frame布局
-        tilePalette = UIView()
-        tilePalette.isUserInteractionEnabled = true
-        tilePalette.backgroundColor = .clear
-        tilePalette.translatesAutoresizingMaskIntoConstraints = true
-        lowerTileContainer.addSubview(tilePalette)
+        // Piece grid
+        pieceGrid = UIView()
+        pieceGrid.isUserInteractionEnabled = true
+        pieceGrid.backgroundColor = .clear
+        pieceGrid.translatesAutoresizingMaskIntoConstraints = true
+        pieceContainer.addSubview(pieceGrid)
     }
     
-    func fabricateRetreatButton() -> UIButton {
-        let button = UIButton(type: .system)
-        button.setTitle("◀ BACK", for: .normal)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold)
-        button.setTitleColor(.white, for: .normal)
-        button.backgroundColor = UIColor(red: 0.8, green: 0.2, blue: 0.2, alpha: 0.9)
-        button.layer.cornerRadius = 20
-        button.layer.shadowColor = UIColor.black.cgColor
-        button.layer.shadowOffset = CGSize(width: 0, height: 2)
-        button.layer.shadowRadius = 4
-        button.layer.shadowOpacity = 0.3
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
+    func buildQuitControl() -> UIButton {
+        let control = UIButton(type: .system)
+        control.setTitle("◀ QUIT", for: .normal)
+        control.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold)
+        control.setTitleColor(.white, for: .normal)
+        control.backgroundColor = StyleConfig.Palette.negative.withAlphaComponent(0.9)
+        control.layer.cornerRadius = 18
+        control.layer.shadowColor = UIColor.black.cgColor
+        control.layer.shadowOffset = CGSize(width: 0, height: 2)
+        control.layer.shadowRadius = 4
+        control.layer.shadowOpacity = 0.3
+        control.translatesAutoresizingMaskIntoConstraints = false
+        return control
     }
     
-    func orchestrateLayout() {
-        let isCompactDevice = UIDevice.current.userInterfaceIdiom == .phone
-        let slotContainerHeight: CGFloat = isCompactDevice ? 100 : 140
-        // 计算能容纳5行麻将的高度：5行 * (48 * 1.4 + 6间距) + 上下间距
-        let tileContainerHeight: CGFloat = isCompactDevice ? 390 : 480
+    func establishLayout() {
+        let isCompact = UIDevice.current.userInterfaceIdiom == .phone
+        let targetHeight: CGFloat = isCompact ? 100 : 140
+        let containerHeight: CGFloat = isCompact ? 390 : 480
         
         NSLayoutConstraint.activate([
             // Background
-            backgroundIllustration.topAnchor.constraint(equalTo: view.topAnchor),
-            backgroundIllustration.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            backgroundIllustration.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            backgroundIllustration.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            backdropCanvas.topAnchor.constraint(equalTo: view.topAnchor),
+            backdropCanvas.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            backdropCanvas.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            backdropCanvas.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             
-            // Dimmer
-            dimmerOverlay.topAnchor.constraint(equalTo: view.topAnchor),
-            dimmerOverlay.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            dimmerOverlay.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            dimmerOverlay.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            // Mask
+            maskOverlay.topAnchor.constraint(equalTo: view.topAnchor),
+            maskOverlay.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            maskOverlay.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            maskOverlay.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             
-            // Retreat button
-            retreatButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
-            retreatButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            retreatButton.widthAnchor.constraint(equalToConstant: 100),
-            retreatButton.heightAnchor.constraint(equalToConstant: 40),
+            // Quit button
+            quitControl.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            quitControl.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            quitControl.widthAnchor.constraint(equalToConstant: 100),
+            quitControl.heightAnchor.constraint(equalToConstant: 40),
             
-            // Accomplishment
-            accomplishmentLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
-            accomplishmentLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            // Score
+            scoreDisplay.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            scoreDisplay.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             
-            // Chronometer
-            chronometer.topAnchor.constraint(equalTo: accomplishmentLabel.bottomAnchor, constant: 8),
-            chronometer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            // Clock
+            clockDisplay.topAnchor.constraint(equalTo: scoreDisplay.bottomAnchor, constant: 8),
+            clockDisplay.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             
-            // Mode indicator
-            modeIndicator.topAnchor.constraint(equalTo: retreatButton.topAnchor),
-            modeIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            // Mode badge
+            styleBadge.topAnchor.constraint(equalTo: quitControl.topAnchor),
+            styleBadge.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
-            // Upper slot container - 向下移动30
-            upperSlotContainer.topAnchor.constraint(equalTo: modeIndicator.bottomAnchor, constant: 45),
-            upperSlotContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            upperSlotContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            upperSlotContainer.heightAnchor.constraint(equalToConstant: slotContainerHeight),
+            // Target zone
+            targetZone.topAnchor.constraint(equalTo: styleBadge.bottomAnchor, constant: 45),
+            targetZone.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            targetZone.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            targetZone.heightAnchor.constraint(equalToConstant: targetHeight),
             
-            // Lower tile container
-            lowerTileContainer.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
-            lowerTileContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            lowerTileContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            lowerTileContainer.heightAnchor.constraint(equalToConstant: tileContainerHeight),
+            // Piece container
+            pieceContainer.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
+            pieceContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            pieceContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            pieceContainer.heightAnchor.constraint(equalToConstant: containerHeight),
             
-            // Tile palette
-            tilePalette.topAnchor.constraint(equalTo: lowerTileContainer.topAnchor, constant: 10),
-            tilePalette.leadingAnchor.constraint(equalTo: lowerTileContainer.leadingAnchor, constant: 10),
-            tilePalette.bottomAnchor.constraint(equalTo: lowerTileContainer.bottomAnchor, constant: -10),
-            tilePalette.heightAnchor.constraint(equalTo: lowerTileContainer.heightAnchor, constant: -20)
+            // Piece grid
+            pieceGrid.topAnchor.constraint(equalTo: pieceContainer.topAnchor, constant: 10),
+            pieceGrid.leadingAnchor.constraint(equalTo: pieceContainer.leadingAnchor, constant: 10),
+            pieceGrid.bottomAnchor.constraint(equalTo: pieceContainer.bottomAnchor, constant: -10),
+            pieceGrid.heightAnchor.constraint(equalTo: pieceContainer.heightAnchor, constant: -20)
         ])
     }
     
-    @objc func executeRetreat() {
-        presentConfirmationDialog()
+    @objc func handleQuit() {
+        showExitPrompt()
     }
     
-    func presentConfirmationDialog() {
-        let alert = UIAlertController(
+    func showExitPrompt() {
+        let prompt = UIAlertController(
             title: "Save & Exit?",
-            message: "Your game will be saved to records.\n\nCurrent Score: \(currentAccomplishment)\nTime Played: \(formatTime(elapsedDuration))",
+            message: "Your game will be saved to records.\n\nCurrent Score: \(currentScore)\nTime Played: \(renderTime(sessionTime))",
             preferredStyle: .alert
         )
         
-        alert.addAction(UIAlertAction(title: "Continue Playing", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Save & Exit", style: .default) { _ in
-            // 保存游戏记录
-            self.saveGameRecord()
+        prompt.addAction(UIAlertAction(title: "Continue", style: .cancel))
+        prompt.addAction(UIAlertAction(title: "Save & Exit", style: .default) { _ in
+            self.captureRecord()
             self.dismiss(animated: true)
         })
         
-        present(alert, animated: true)
+        present(prompt, animated: true)
     }
     
-    func saveGameRecord() {
-        // 只保存有分数的游戏，且只保存一次
-        if currentAccomplishment > 0 && !hasRecordSaved {
-            let modeName = gameMode == .classic ? "Classic" : "Speed Rush"
-            let archive = GameArchive(accomplishment: currentAccomplishment, duration: elapsedDuration, modeName: modeName)
-            ArchiveKeeper.shared.preserveArchive(archive)
-            hasRecordSaved = true
+    func captureRecord() {
+        if currentScore > 0 && !recordSaved {
+            let styleName = selectedStyle == .relaxed ? "Relaxed" : "Intense"
+            let entry = SessionRecord(points: currentScore, span: sessionTime, styleName: styleName)
+            RecordKeeper.shared.storeRecord(entry)
+            recordSaved = true
+            print("💾 Record saved - \(styleName), Score: \(currentScore)")
         }
     }
     
-    func formatTime(_ duration: TimeInterval) -> String {
-        let minutes = Int(duration) / 60
-        let seconds = Int(duration) % 60
-        return String(format: "%02d:%02d", minutes, seconds)
+    func renderTime(_ span: TimeInterval) -> String {
+        let mins = Int(span) / 60
+        let secs = Int(span) % 60
+        return String(format: "%02d:%02d", mins, secs)
     }
 }
 

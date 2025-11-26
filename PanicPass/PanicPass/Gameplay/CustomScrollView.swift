@@ -1,5 +1,5 @@
 //
-//  CustomScrollView.swift
+//  EnhancedScrollView.swift
 //  PanicPass
 //
 //  Created by Zhao on 2025/11/25.
@@ -7,38 +7,36 @@
 
 import UIKit
 
-class CustomScrollView: UIScrollView {
+class EnhancedScrollView: UIScrollView {
     
-    override func touchesShouldCancel(in view: UIView) -> Bool {
-        // 对于UIButton，不取消触摸事件
-        if view is UIButton {
+    override func touchesShouldCancel(in target: UIView) -> Bool {
+        // Keep button touches from being cancelled
+        if target is UIButton {
             return false
         }
-        return super.touchesShouldCancel(in: view)
+        return super.touchesShouldCancel(in: target)
     }
     
-    override func touchesShouldBegin(_ touches: Set<UITouch>, with event: UIEvent?, in view: UIView) -> Bool {
-        // 如果是按钮，允许触摸开始
-        if view is UIButton {
+    override func touchesShouldBegin(_ touches: Set<UITouch>, with event: UIEvent?, in target: UIView) -> Bool {
+        // Allow buttons to receive touches
+        if target is UIButton {
             return true
         }
-        return super.touchesShouldBegin(touches, with: event, in: view)
+        return super.touchesShouldBegin(touches, with: event, in: target)
     }
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setupScrollView()
+        configure()
     }
     
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        setupScrollView()
+        configure()
     }
     
-    func setupScrollView() {
-        // 确保立即响应按钮点击
+    func configure() {
         delaysContentTouches = false
-        // 允许滚动时取消内容触摸（这样才能滚动）
         canCancelContentTouches = true
     }
 }

@@ -17,27 +17,27 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="passPhoto" translatesAutoresizingMaskIntoConstraints="NO" id="dVq-I1-D62">
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="passPhoto" translatesAutoresizingMaskIntoConstraints="NO" id="r05-Gi-beU">
                                 <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                             </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
-                            <constraint firstAttribute="top" secondItem="dVq-I1-D62" secondAttribute="top" id="0ad-6r-keV"/>
-                            <constraint firstItem="dVq-I1-D62" firstAttribute="bottom" secondItem="Ze5-6b-2t3" secondAttribute="bottom" id="124-De-QyE"/>
-                            <constraint firstItem="dVq-I1-D62" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="Zg7-dI-9eQ"/>
-                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="dVq-I1-D62" secondAttribute="trailing" id="nu7-Zy-Q05"/>
+                            <constraint firstAttribute="top" secondItem="r05-Gi-beU" secondAttribute="top" id="DRb-OA-Yzi"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="r05-Gi-beU" secondAttribute="trailing" id="MZC-Fm-A9f"/>
+                            <constraint firstItem="r05-Gi-beU" firstAttribute="bottom" secondItem="Ze5-6b-2t3" secondAttribute="bottom" id="cvi-07-m5k"/>
+                            <constraint firstItem="r05-Gi-beU" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="tN4-nv-ldF"/>
                         </constraints>
                     </view>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="52.671755725190835" y="374.64788732394368"/>
+            <point key="canvasLocation" x="53" y="375"/>
         </scene>
     </scenes>
     <resources>
-        <image name="passPhoto" width="2000" height="3556"/>
+        <image name="passPhoto" width="1012" height="1516"/>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
